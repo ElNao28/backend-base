@@ -1,0 +1,25 @@
+version: '1.0.0'
+
+services:
+  postgres:
+    container_name: postgres-base
+    image: postgres:14.24-alpine3.23
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    environment:
+      - POSTGRES_DB=${DB_NAME:-base-db}
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-base123!@#}
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+
+  pgAdmin:
+    image: elestio/pgadmin:REL-9_14
+    ports:
+      - ${PGADMIN_LISTEN_PORT:-8080}:8080
+    environment:
+      - PGADMIN_LISTEN_PORT=${PGADMIN_LISTEN_PORT:-8080}
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-base@email.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
