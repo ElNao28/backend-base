@@ -8,6 +8,7 @@ export default registerAs('envs', () => ({
   DB_PASSWORD: process.env.DB_PASSWORD,
   DB_HOST: process.env.DB_HOST,
   DB_PORT: process.env.DB_PORT,
+  PACKAGE_MANAGER: process.env.PACKAGE_MANAGER,
 }));
 
 export const EnviromentsValidationSchema = z.object({
@@ -17,4 +18,5 @@ export const EnviromentsValidationSchema = z.object({
   DB_PASSWORD: z.string(),
   DB_HOST: z.string().default('localhost'),
   DB_PORT: z.coerce.number().default(5432),
+  PACKAGE_MANAGER: z.enum(['pnpm', 'npm', 'yarn']),
 });
