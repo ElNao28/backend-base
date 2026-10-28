@@ -5,12 +5,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthModule } from './auth/auth.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TypeOrmConfig } from './shared/config/typeorm.config.js';
+import { TypeOrmConfig } from './common/config/typeorm.config.js';
 // Envitoment configuration
 
 import generalConfig, {
   EnviromentsValidationSchema,
-} from './shared/config/envs.config.js';
+} from './common/config/envs.config.js';
 
 @Module({
   imports: [
