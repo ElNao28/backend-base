@@ -6,9 +6,13 @@ import { User } from './entities/user.entity.js';
 import { Rol } from './entities/rol.entity.js';
 import { Credentials } from './entities/credentials.entity.js';
 import { RefreshToken } from './entities/refresh-token.entity.js';
+import { CommonModule } from '../common/common.module.js';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Rol, Credentials, RefreshToken])],
+  imports: [
+    TypeOrmModule.forFeature([User, Rol, Credentials, RefreshToken]),
+    CommonModule,
+  ],
   controllers: [AuthController],
   providers: [AuthService],
 })
