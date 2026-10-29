@@ -76,7 +76,6 @@ export class AuthService {
       return HandlerSuccessResponse.response(
         'User created',
         HttpStatus.CREATED,
-        userSaved,
       );
     } catch (error) {
       await queryRunner.rollbackTransaction();
