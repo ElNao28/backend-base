@@ -28,6 +28,14 @@ export class RefreshToken extends BaseEntity {
   })
   expiresAt: Date;
 
+  @Column({ default: false })
+  revoked: boolean;
+
+  @Column({
+    unique: true,
+  })
+  jti: string;
+
   @ManyToOne(() => User, (user) => user.refreshTokens, {
     nullable: false,
     onDelete: 'CASCADE',
