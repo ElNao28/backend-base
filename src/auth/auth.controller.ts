@@ -1,8 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
-import { RegisterUserDto } from './dto/register-user.dto.js';
-import { ApiCreatedResponse } from '@nestjs/swagger';
+import { RegisterUserDto } from './dto/requests/register-user.dto.js';
+import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '../common/dto/success-response.dto.js';
+import { SignInDto } from './dto/requests/sign-in.dto.js';
+import { SignInResponseDto } from './dto/responses/sign-in-response.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -14,5 +16,14 @@ export class AuthController {
   @Post('register')
   public registerUser(@Body() registerUserDto: RegisterUserDto) {
     return this.authService.registerUser(registerUserDto);
+  }
+
+  @ApiOkResponse({
+    type: SignInResponseDto,
+  })
+  @HttpCode(HttpStatus.OK)
+  @Post('sign-in')
+  public signIn(@Body() signInDto: SignInDto) {
+    return this.authService.signIn(signInDto);
   }
 }
