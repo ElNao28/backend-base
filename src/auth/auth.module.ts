@@ -7,6 +7,9 @@ import { Rol } from './entities/rol.entity.js';
 import { Credentials } from './entities/credentials.entity.js';
 import { RefreshToken } from './entities/refresh-token.entity.js';
 import { CommonModule } from '../common/common.module.js';
+import { JwtStrategy } from './strategies/jwt.strategy.js';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 
 @Module({
   imports: [
@@ -14,6 +17,13 @@ import { CommonModule } from '../common/common.module.js';
     CommonModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AuthModule {}
