@@ -5,6 +5,7 @@ import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
 import { SuccessResponseDto } from '../common/dto/success-response.dto.js';
 import { SignInDto } from './dto/requests/sign-in.dto.js';
 import { SignInResponseDto } from './dto/responses/sign-in-response.dto.js';
+import { Public } from './decorators/public.decorator.js';
 
 @Controller('auth')
 export class AuthController {
@@ -13,6 +14,7 @@ export class AuthController {
   @ApiCreatedResponse({
     type: SuccessResponseDto,
   })
+  @Public()
   @Post('register')
   public registerUser(@Body() registerUserDto: RegisterUserDto) {
     return this.authService.registerUser(registerUserDto);
@@ -21,6 +23,7 @@ export class AuthController {
   @ApiOkResponse({
     type: SignInResponseDto,
   })
+  @Public()
   @HttpCode(HttpStatus.OK)
   @Post('sign-in')
   public signIn(@Body() signInDto: SignInDto) {
