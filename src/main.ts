@@ -13,12 +13,13 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-
   const config = new DocumentBuilder()
     .setTitle('Base backend')
     .setDescription(
       'Base backend development with NestJS. [View OpenAPI JSON](/api/docs/json)',
     )
+    .addBearerAuth()
+    .addSecurityRequirements('bearer')
     .setVersion('1.0.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
