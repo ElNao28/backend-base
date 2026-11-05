@@ -197,7 +197,7 @@ export class AuthService {
     const { sub } = userJwtDto;
     const payload = {
       sub,
-      type: 'access',
+      tokenType: 'access',
     };
 
     const accessToken = this.jwtGeneratorService.generateToken(payload, '15m');
