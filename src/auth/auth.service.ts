@@ -18,6 +18,7 @@ import { HandlerSuccessResponse } from '../common/utils/handler-success-response
 import { SignInDto } from './dto/requests/sign-in.dto.js';
 import { JwtGeneratorService } from '../common/services/jwt-generator.service.js';
 import { randomUUID } from 'crypto';
+import { UserJwtDto } from '../common/dto/jwt-user.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -160,6 +161,7 @@ export class AuthService {
     return {
       accessTokenPayload: {
         sub: id,
+        tokenType: 'access',
       },
       refreshTokenPayload: {
         sub: id,
@@ -189,5 +191,19 @@ export class AuthService {
     } catch (error) {
       handleDatabaseErrors(error);
     }
+  }
+
+  public regenerateAccessToken(userJwtDto: UserJwtDto) {
+    const { sub } = userJwtDto;
+    const payload = {
+      sub,
+      type: 'access',
+    };
+
+    const accessToken = this.jwtGeneratorService.generateToken(payload, '15m');
+
+    return HandlerSuccessResponse.response('Token regenerated', HttpStatus.OK, {
+      accessToken,
+    });
   }
 }
