@@ -22,7 +22,7 @@ export class RefreshTokenGuard implements CanActivate {
     const userJwt = request.user as UserJwtDto;
 
     if (userJwt.tokenType !== 'refresh')
-      throw new UnauthorizedException('Tokend invalid');
+      throw new UnauthorizedException('Refresh token required');
 
     const foundToken = await this.refreshTokenRepository.findOne({
       where: {
@@ -43,7 +43,7 @@ export class RefreshTokenGuard implements CanActivate {
       foundToken.tokenHash,
     );
 
-    if (!isMatch) throw new UnauthorizedException('Not match');
+    if (!isMatch) throw new UnauthorizedException('Ivalid token');
 
     return true;
   }

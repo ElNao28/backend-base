@@ -18,6 +18,7 @@ import { UserJwt } from './decorators/user.decorator.js';
 import { UserJwtDto } from '../common/dto/jwt-user.dto.js';
 import { RefreshTokenGuard } from './guards/refresh-token.guard.js';
 import { RegenerateRefreshTokenResponseDto } from './dto/responses/regenerate-access-token-response.dto.js';
+import { RefreshRoute } from './decorators/refresh-route.decorator.js';
 
 @Controller('auth')
 export class AuthController {
@@ -48,6 +49,7 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.OK)
   @Authorization(Roles.ADMIN, Roles.SUPER_ADMIN, Roles.USER)
+  @RefreshRoute()
   @UseGuards(RefreshTokenGuard)
   @Post('access-token')
   public regenerateAccessToken(@UserJwt() userJwtDto: UserJwtDto) {
