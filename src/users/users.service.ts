@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../auth/entities/user.entity.js';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import {
   PaginationData,
 } from '../common/utils/handler-success-response.js';
 import { PaginationDto } from '../common/dto/pagination.dto.js';
+import { UserJwtDto } from '../common/dto/jwt-user.dto.js';
 
 @Injectable()
 export class UsersService {
@@ -43,6 +44,27 @@ export class UsersService {
       HttpStatus.OK,
       users,
       paginationData,
+    );
+  }
+
+  public async getUser(userJwtDto: UserJwtDto) {
+    const { sub: id } = userJwtDto;
+    const foundUser = await this.userRepository.findOne({
+      where: {
+        id,
+        status: true,
+      },
+      relations: {
+        roles: true,
+      },
+    });
+
+    if (!foundUser) throw new NotFoundException('User not found');
+
+    return HandlerSuccessResponse.response(
+      'User found',
+      HttpStatus.OK,
+      foundUser,
     );
   }
 }
