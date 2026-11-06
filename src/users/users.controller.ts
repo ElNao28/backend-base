@@ -4,19 +4,19 @@ import {
   Authorization,
   Roles,
 } from '../auth/decorators/authorization.decorator.js';
-import { ApiOkResponse } from '@nestjs/swagger';
 import { PaginationDto } from '../common/dto/pagination.dto.js';
-import { GetUsersResponse } from './dto/responses/get-users-response.dto.js';
 import { UserJwt } from '../auth/decorators/user.decorator.js';
 import { UserJwtDto } from '../common/dto/jwt-user.dto.js';
-import { GetUserResponseDto } from './dto/responses/get-user-response.dto.js';
+import { ResponseApi } from '../auth/decorators/response-api.decorator.js';
+import { UserDto } from './dto/responses/user.dto.js';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @ApiOkResponse({
-    type: GetUsersResponse,
+  @ResponseApi(UserDto, {
+    isArray: true,
+    isPagination: true,
   })
   @Authorization(Roles.SUPER_ADMIN)
   @Get('all')
@@ -24,18 +24,14 @@ export class UsersController {
     return this.usersService.getAllUsers(paginationDto);
   }
 
-  @ApiOkResponse({
-    type: GetUserResponseDto,
-  })
+  @ResponseApi(UserDto)
   @Authorization(Roles.USER, Roles.SUPER_ADMIN, Roles.ADMIN)
   @Get('me')
   public getUser(@UserJwt() userJwtDto: UserJwtDto) {
     return this.usersService.getUser(userJwtDto);
   }
 
-  @ApiOkResponse({
-    type: GetUserResponseDto,
-  })
+  @ResponseApi(UserDto)
   @Authorization(Roles.SUPER_ADMIN, Roles.ADMIN)
   @Get('user/:id')
   public getUserById(@Param('id', ParseUUIDPipe) idUser: string) {
