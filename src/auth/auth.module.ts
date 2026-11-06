@@ -30,5 +30,6 @@ import { RolesGuard } from './guards/roles.guard.js';
       useClass: RolesGuard,
     },
   ],
+  exports: [TypeOrmModule],
 })
 export class AuthModule {}
