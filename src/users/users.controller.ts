@@ -35,7 +35,7 @@ export class UsersController {
   }
 
   @ResponseDataApi(UserDto)
-  @Authorization(Roles.USER, Roles.SUPER_ADMIN, Roles.ADMIN)
+  @Authorization(Roles.ALL)
   @Get('me')
   public getUser(@UserJwt() userJwtDto: UserJwtDto) {
     return this.usersService.getUser(userJwtDto);
@@ -49,7 +49,7 @@ export class UsersController {
   }
 
   @ResponseEmptyApi()
-  @Authorization(Roles.ADMIN, Roles.SUPER_ADMIN, Roles.USER)
+  @Authorization(Roles.ALL)
   @Patch('update')
   public updateUser(
     @Body() updateUserDto: UpdateUserDto,

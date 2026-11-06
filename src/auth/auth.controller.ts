@@ -32,7 +32,7 @@ export class AuthController {
   }
 
   @ResponseDataApi(RegenerateRefreshTokenResponseDto)
-  @Authorization(Roles.ADMIN, Roles.SUPER_ADMIN, Roles.USER)
+  @Authorization(Roles.ALL)
   @RefreshRoute()
   @UseGuards(RefreshTokenGuard)
   @Post('access-token')
