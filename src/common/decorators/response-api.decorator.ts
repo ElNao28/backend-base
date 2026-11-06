@@ -1,4 +1,4 @@
-import { applyDecorators, HttpStatus, Type } from '@nestjs/common';
+import { applyDecorators, HttpCode, HttpStatus, Type } from '@nestjs/common';
 import { ApiExtraModels, ApiResponse, getSchemaPath } from '@nestjs/swagger';
 import { DefaultResponseDto } from '../../common/dto/default-response.dto.js';
 import { PaginationDataDto } from '../../common/dto/pagination-data.dto.js';
@@ -9,7 +9,7 @@ interface ResponseApiOptions {
   isPagination?: boolean;
 }
 
-export const ResponseApi = <TModel extends Type<any>>(
+export const ResponseDataApi = <TModel extends Type<any>>(
   model: TModel,
   options: ResponseApiOptions = {},
 ) => {
@@ -58,5 +58,6 @@ export const ResponseApi = <TModel extends Type<any>>(
         ],
       },
     }),
+    HttpCode(status),
   );
 };
