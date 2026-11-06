@@ -10,6 +10,7 @@ export default registerAs('envs', () => ({
   DB_PORT: process.env.DB_PORT,
   PACKAGE_MANAGER: process.env.PACKAGE_MANAGER,
   HASH_SALT: process.env.HASH_SALT,
+  JWT_KEY: process.env.JWT_KEY,
 }));
 
 export const EnviromentsValidationSchema = z.object({
@@ -21,4 +22,5 @@ export const EnviromentsValidationSchema = z.object({
   DB_PORT: z.coerce.number().default(5432),
   PACKAGE_MANAGER: z.enum(['pnpm', 'npm', 'yarn']),
   HASH_SALT: z.coerce.number().min(8),
+  JWT_KEY: z.string(),
 });

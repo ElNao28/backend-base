@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthModule } from './auth/auth.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeOrmConfig } from './common/config/typeorm.config.js';
-// Envitoment configuration
+import { JwtModule } from '@nestjs/jwt';
 
+// Envitoment configuration
 import generalConfig, {
   EnviromentsValidationSchema,
 } from './common/config/envs.config.js';
@@ -26,8 +26,17 @@ import generalConfig, {
         TypeOrmConfig(configService),
     }),
     AuthModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      global: true,
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get('envs.JWT_KEY'),
+        global: true,
+      }),
+    }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [],
 })
 export class AppModule {}
