@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Param, ParseUUIDPipe, Query } from '@nestjs/common';
 import { UsersService } from './users.service.js';
 import {
   Authorization,
@@ -9,7 +9,7 @@ import { PaginationDto } from '../common/dto/pagination.dto.js';
 import { GetUsersResponse } from './dto/responses/get-users-response.dto.js';
 import { UserJwt } from '../auth/decorators/user.decorator.js';
 import { UserJwtDto } from '../common/dto/jwt-user.dto.js';
-import { UserResponseDto } from './dto/responses/get-user-response.dto.js';
+import { GetUserResponseDto } from './dto/responses/get-user-response.dto.js';
 
 @Controller('users')
 export class UsersController {
@@ -25,11 +25,20 @@ export class UsersController {
   }
 
   @ApiOkResponse({
-    type: UserResponseDto,
+    type: GetUserResponseDto,
   })
   @Authorization(Roles.USER, Roles.SUPER_ADMIN, Roles.ADMIN)
   @Get('me')
   public getUser(@UserJwt() userJwtDto: UserJwtDto) {
     return this.usersService.getUser(userJwtDto);
+  }
+
+  @ApiOkResponse({
+    type: GetUserResponseDto,
+  })
+  @Authorization(Roles.SUPER_ADMIN, Roles.ADMIN)
+  @Get('user/:id')
+  public getUserById(@Param('id', ParseUUIDPipe) idUser: string) {
+    return this.usersService.getUserById(idUser);
   }
 }

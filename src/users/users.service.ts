@@ -67,4 +67,24 @@ export class UsersService {
       foundUser,
     );
   }
+
+  public async getUserById(id: string) {
+    const foundUser = await this.userRepository.findOne({
+      where: {
+        id,
+        status: true,
+      },
+      relations: {
+        roles: true,
+      },
+    });
+
+    if (!foundUser) throw new NotFoundException('User not found');
+
+    return HandlerSuccessResponse.response(
+      'User found',
+      HttpStatus.OK,
+      foundUser,
+    );
+  }
 }
