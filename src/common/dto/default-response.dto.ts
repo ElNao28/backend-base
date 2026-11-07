@@ -1,9 +1,11 @@
 import { HttpStatus } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class DefaultResponseDto {
+export class DefaultResponseDto<TData> {
   @ApiProperty()
   message: string;
   @ApiProperty()
   statusCode: HttpStatus;
+
+  data: TData;
 }

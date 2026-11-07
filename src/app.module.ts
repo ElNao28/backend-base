@@ -11,6 +11,7 @@ import { JwtModule } from '@nestjs/jwt';
 import generalConfig, {
   EnviromentsValidationSchema,
 } from './common/config/envs.config.js';
+import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import generalConfig, {
         global: true,
       }),
     }),
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [],

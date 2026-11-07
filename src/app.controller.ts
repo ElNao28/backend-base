@@ -1,16 +1,13 @@
 import { Controller, Get, HttpStatus } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
 import { HandlerSuccessResponse } from './common/utils/handler-success-response.js';
-import { SuccessResponseDto } from './common/dto/success-response.dto.js';
 import { Public } from './auth/decorators/public.decorator.js';
+import { ResponseEmptyApi } from './common/decorators/response-success-api.decorators.js';
 
 @Controller()
 export class AppController {
   constructor() {}
 
-  @ApiOkResponse({
-    type: SuccessResponseDto,
-  })
+  @ResponseEmptyApi()
   @Public()
   @Get('health')
   getHello() {

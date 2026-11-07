@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import { ROLES_KEY } from '../decorators/authorization.decorator.js';
+import { Roles, ROLES_KEY } from '../decorators/authorization.decorator.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity.js';
@@ -31,7 +31,7 @@ export class RolesGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]) as string[];
-    
+
     if (!roles?.length) {
       throw new ForbiddenException('No roles configured for this endpoint');
     }
@@ -42,6 +42,7 @@ export class RolesGuard implements CanActivate {
     const userFound = await this.userRepository.findOne({
       where: {
         id: user.sub,
+        status: true,
       },
       relations: {
         roles: true,
@@ -49,6 +50,8 @@ export class RolesGuard implements CanActivate {
     });
 
     if (!userFound) throw new UnauthorizedException();
+
+    if (roles.includes(Roles.ALL)) return true;
 
     const rolesName = userFound.roles.map((rol) => rol.name);
 
