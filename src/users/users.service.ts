@@ -140,4 +140,22 @@ export class UsersService {
       handleDatabaseErrors(error);
     }
   }
+
+  public async deleteUserById(id: string) {
+    const foundUser = await this.userRepository.findOne({
+      where: {
+        id,
+        status: true,
+      },
+    });
+
+    if (!foundUser) throw new NotFoundException('User not found');
+
+    try {
+      await this.userRepository.softDelete(id);
+      return HandlerSuccessResponse.response('User deleted');
+    } catch (error) {
+      handleDatabaseErrors(error);
+    }
+  }
 }

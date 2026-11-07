@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -56,5 +57,12 @@ export class UsersController {
     @UserJwt() userJwt: UserJwtDto,
   ) {
     return this.usersService.updateUser(updateUserDto, userJwt);
+  }
+
+  @ResponseEmptyApi()
+  @Authorization(Roles.SUPER_ADMIN)
+  @Delete('user/:id')
+  public deleteUserById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.usersService.deleteUserById(id);
   }
 }
