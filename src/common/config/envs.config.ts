@@ -12,6 +12,7 @@ export default registerAs('envs', () => ({
   HASH_SALT: process.env.HASH_SALT,
   JWT_KEY: process.env.JWT_KEY,
   SMTP_URL: process.env.SMTP_URL,
+  ADDRESS_MAIL: process.env.ADDRESS_MAIL,
 }));
 
 export const EnviromentsValidationSchema = z.object({
@@ -25,4 +26,5 @@ export const EnviromentsValidationSchema = z.object({
   HASH_SALT: z.coerce.number().min(8),
   JWT_KEY: z.string(),
   SMTP_URL: z.string(),
+  ADDRESS_MAIL: z.email(),
 });
