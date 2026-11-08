@@ -1,3 +1,4 @@
+import 'dotenv/config.js';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -12,6 +13,7 @@ import generalConfig, {
   EnviromentsValidationSchema,
 } from './common/config/envs.config.js';
 import { UsersModule } from './users/users.module.js';
+import { MailerModule } from './mail/mail.module.js';
 
 @Module({
   imports: [
@@ -21,14 +23,12 @@ import { UsersModule } from './users/users.module.js';
       validationSchema: EnviromentsValidationSchema,
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
         TypeOrmConfig(configService),
     }),
     AuthModule,
     JwtModule.registerAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
       global: true,
       useFactory: (configService: ConfigService) => ({
@@ -37,6 +37,7 @@ import { UsersModule } from './users/users.module.js';
       }),
     }),
     UsersModule,
+    MailerModule,
   ],
   controllers: [AppController],
   providers: [],
