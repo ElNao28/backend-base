@@ -13,6 +13,7 @@ export default registerAs('envs', () => ({
   JWT_KEY: process.env.JWT_KEY,
   SMTP_URL: process.env.SMTP_URL,
   ADDRESS_MAIL: process.env.ADDRESS_MAIL,
+  NODE_ENV: process.env.NODE_ENV,
 }));
 
 export const EnviromentsValidationSchema = z.object({
@@ -27,4 +28,5 @@ export const EnviromentsValidationSchema = z.object({
   JWT_KEY: z.string(),
   SMTP_URL: z.string(),
   ADDRESS_MAIL: z.email(),
+  NODE_ENV: z.enum(['dev', 'production']),
 });
