@@ -14,6 +14,7 @@ export default registerAs('envs', () => ({
   SMTP_URL: process.env.SMTP_URL,
   ADDRESS_MAIL: process.env.ADDRESS_MAIL,
   NODE_ENV: process.env.NODE_ENV,
+  FRONTEND_URL: process.env.FRONTEND_URL,
 }));
 
 export const EnviromentsValidationSchema = z.object({
@@ -29,4 +30,5 @@ export const EnviromentsValidationSchema = z.object({
   SMTP_URL: z.string(),
   ADDRESS_MAIL: z.email(),
   NODE_ENV: z.enum(['dev', 'production']),
+  FRONTEND_URL: z.url(),
 });
