@@ -19,6 +19,7 @@ import { SignInDto } from './dto/requests/sign-in.dto.js';
 import { JwtGeneratorService } from '../common/services/jwt-generator.service.js';
 import { randomUUID } from 'crypto';
 import { UserJwtDto } from '../common/dto/jwt-user.dto.js';
+import { Jwtypes } from '../common/constants/jwt-types.js';
 
 @Injectable()
 export class AuthService {
@@ -161,12 +162,12 @@ export class AuthService {
     return {
       accessTokenPayload: {
         sub: id,
-        tokenType: 'access',
+        tokenType: Jwtypes.ACCESS,
       },
       refreshTokenPayload: {
         sub: id,
         jti: randomUUID(),
-        tokenType: 'refresh',
+        tokenType: Jwtypes.REFRESH,
       },
     };
   }
@@ -197,7 +198,7 @@ export class AuthService {
     const { sub } = userJwtDto;
     const payload = {
       sub,
-      tokenType: 'access',
+      tokenType: Jwtypes.ACCESS,
     };
 
     const accessToken = this.jwtGeneratorService.generateToken(payload, '15m');

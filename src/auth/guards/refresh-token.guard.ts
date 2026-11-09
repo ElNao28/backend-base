@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { RefreshToken } from '../entities/refresh-token.entity.js';
 import { Repository } from 'typeorm';
 import { BcryptConfigService } from '../../common/services/bcrypt.service.js';
+import { Jwtypes } from '../../common/constants/jwt-types.js';
 
 @Injectable()
 export class RefreshTokenGuard implements CanActivate {
@@ -21,7 +22,7 @@ export class RefreshTokenGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const userJwt = request.user as UserJwtDto;
 
-    if (userJwt.tokenType !== 'refresh')
+    if (userJwt.tokenType !== Jwtypes.REFRESH)
       throw new UnauthorizedException('Refresh token required');
 
     const foundToken = await this.refreshTokenRepository.findOne({

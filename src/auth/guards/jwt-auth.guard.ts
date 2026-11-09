@@ -9,6 +9,7 @@ import { Observable } from 'rxjs';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
 import { IS_REFRESH_ROUTE_KEY } from '../decorators/refresh-route.decorator.js';
 import { UserJwtDto } from '../../common/dto/jwt-user.dto.js';
+import { Jwtypes } from '../../common/constants/jwt-types.js';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -45,10 +46,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     );
     const { tokenType } = user as UserJwtDto;
 
-    if (!isRefreshRoute && tokenType !== 'access')
+    if (!isRefreshRoute && tokenType !== Jwtypes.ACCESS)
       throw new UnauthorizedException('Access token required');
 
-    if (isRefreshRoute && tokenType !== 'refresh')
+    if (isRefreshRoute && tokenType !== Jwtypes.REFRESH)
       throw new UnauthorizedException('Refresh token required');
 
     return user;
