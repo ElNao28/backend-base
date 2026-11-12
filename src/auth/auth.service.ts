@@ -1,15 +1,16 @@
 import {
   BadRequestException,
+  ConflictException,
+  HttpException,
   HttpStatus,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { RegisterUserDto } from './dto/requests/register-user.dto.js';
 import { BcryptConfigService } from '../common/services/bcrypt.service.js';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity.js';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Credentials } from './entities/credentials.entity.js';
 import { RefreshToken } from './entities/refresh-token.entity.js';
 import { Rol } from './entities/rol.entity.js';
@@ -20,77 +21,113 @@ import { JwtGeneratorService } from '../common/services/jwt-generator.service.js
 import { randomUUID } from 'crypto';
 import { UserJwtDto } from '../common/dto/jwt-user.dto.js';
 import { Jwtypes } from '../common/constants/jwt-types.js';
+import { Outbox } from '@nestjs/outbox';
+import { PreRegister } from './entities/pre-register.entity.js';
+import { PreRegisterDto } from './dto/requests/pre-register.dto.js';
+import ms from 'ms';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly bcryptConfigService: BcryptConfigService,
-    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @InjectRepository(Credentials)
     private readonly credentialsRepository: Repository<Credentials>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
     @InjectRepository(Rol)
     private readonly rolRepository: Repository<Rol>,
+    @InjectRepository(PreRegister)
+    private readonly PreRegisterRepository: Repository<PreRegister>,
     private dataSource: DataSource,
     private readonly jwtGeneratorService: JwtGeneratorService,
+    private readonly outbox: Outbox<EntityManager>,
   ) {}
 
-  public async registerUser(registerUserDto: RegisterUserDto) {
-    const { password, email, phone, ...rest } = registerUserDto;
-
-    const existEmail = await this.userRepository.findOne({
-      where: {
-        email,
-      },
-    });
-
-    if (existEmail) throw new BadRequestException('Email already exist');
-
-    const existPhone = await this.userRepository.findOne({
-      where: {
-        phone,
-      },
-    });
-    if (existPhone) throw new BadRequestException('phone already exist');
-
-    const passwordHash = await this.bcryptConfigService.hash(password);
-
-    const defaultUserRol = await this.rolRepository.findOne({
-      where: {
-        id: 3,
-      },
-    });
-
-    if (!defaultUserRol) throw new BadRequestException('Rol not exit');
+  public async preRegister(preRegisterDto: PreRegisterDto) {
+    const { email } = preRegisterDto;
 
     const queryRunner = this.dataSource.createQueryRunner();
-
     try {
       await queryRunner.startTransaction();
-      const newUser = queryRunner.manager.create(User, {
-        email,
-        phone,
-        ...rest,
-        roles: [defaultUserRol],
+      const manager = queryRunner.manager;
+
+      const existEmail = await manager.findOne(User, {
+        where: {
+          email,
+        },
+        lock: { mode: 'pessimistic_write' },
       });
 
-      const userSaved = await queryRunner.manager.save(newUser);
+      if (existEmail) throw new ConflictException('Email already exists');
 
-      const userCredentials = this.credentialsRepository.create({
-        password: passwordHash,
-        user: userSaved,
+      let preRegister = await manager.findOne(PreRegister, {
+        where: {
+          email,
+        },
+        lock: { mode: 'pessimistic_write' },
       });
 
-      await queryRunner.manager.save(userCredentials);
+      const isExpired =
+        preRegister && preRegister.expiresAt.getTime() <= Date.now();
+
+      if (!preRegister) {
+        preRegister = manager.create(PreRegister, {
+          email,
+          attempts: 0,
+          expiresAt: new Date(Date.now() + ms('15m')),
+          jti: '',
+          tokenHash: '',
+        });
+      } else if (isExpired) {
+        preRegister.attempts = 0;
+      }
+
+      if (preRegister.attempts >= 5)
+        throw new ConflictException(
+          'The number of attempts has been exceeded; please try again after 15 minutes',
+        );
+
+      const tokenPayload = {
+        jti: randomUUID(),
+        tokenType: Jwtypes.REGISTER,
+      };
+      const verificationToken = await this.jwtGeneratorService.generateToken(
+        tokenPayload,
+        '10m',
+      );
+      const tokenHash = this.bcryptConfigService.hashSha256(verificationToken);
+
+      preRegister.attempts += 1;
+      preRegister.jti = tokenPayload.jti;
+      preRegister.expiresAt = new Date(Date.now() + ms('15m'));
+      preRegister.tokenHash = tokenHash;
+
+      await manager.save(PreRegister, preRegister);
+
+      await this.outbox.add(manager, {
+        topic: 'send.verification.mail',
+        payload: {
+          email,
+          verificationToken,
+          jti: tokenPayload.jti,
+        },
+      });
+
       await queryRunner.commitTransaction();
+      this.outbox.notify();
 
       return HandlerSuccessResponse.response(
-        'User created',
+        'Email pre-registered',
         HttpStatus.CREATED,
       );
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+
+      if (error instanceof HttpException) throw error;
+
       handleDatabaseErrors(error);
     } finally {
       await queryRunner.release();
@@ -106,11 +143,11 @@ export class AuthService {
       this.generateSignTokensPayload(foundUser);
 
     //* Generate tokens
-    const accessToken = this.jwtGeneratorService.generateToken(
+    const accessToken = await this.jwtGeneratorService.generateToken(
       accessTokenPayload,
       '15m',
     );
-    const refreshToken = this.jwtGeneratorService.generateToken(
+    const refreshToken = await this.jwtGeneratorService.generateToken(
       refreshTokenPayload,
       '7d',
     );

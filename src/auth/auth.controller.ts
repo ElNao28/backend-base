@@ -12,6 +12,7 @@ import { RegenerateRefreshTokenResponseDto } from './dto/responses/regenerate-ac
 import { RefreshRoute } from './decorators/refresh-route.decorator.js';
 import { ResponseDataApi } from '../common/decorators/response-api.decorator.js';
 import { ResponseEmptyApi } from '../common/decorators/response-success-api.decorators.js';
+import { PreRegisterDto } from './dto/requests/pre-register.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -19,9 +20,9 @@ export class AuthController {
 
   @ResponseEmptyApi(HttpStatus.CREATED)
   @Public()
-  @Post('register')
-  public registerUser(@Body() registerUserDto: RegisterUserDto) {
-    return this.authService.registerUser(registerUserDto);
+  @Post('pre-register')
+  public preRegister(@Body() preRegisterDto: PreRegisterDto) {
+    return this.authService.preRegister(preRegisterDto);
   }
 
   @ResponseDataApi(SignInDataResponseDto)
