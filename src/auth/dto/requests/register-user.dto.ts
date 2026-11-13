@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import {
   IsDateString,
   IsEmail,
@@ -12,15 +13,24 @@ import {
 export class RegisterUserDto {
   @ApiProperty()
   @IsString()
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   name: string;
 
   @ApiProperty()
   @IsString()
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   lastname: string;
 
   @ApiProperty()
   @IsString()
   @IsOptional()
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.trim().toLowerCase() : value,
+  )
   secondLastName?: string;
 
   @ApiProperty()
@@ -31,10 +41,6 @@ export class RegisterUserDto {
   @IsString()
   @Length(10)
   phone: string;
-
-  @ApiProperty()
-  @IsEmail()
-  email: string;
 
   @ApiProperty()
   @IsString()
