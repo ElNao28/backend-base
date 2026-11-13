@@ -1,10 +1,10 @@
 import {
-  BadRequestException,
   ConflictException,
   HttpException,
   HttpStatus,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { BcryptConfigService } from '../common/services/bcrypt.service.js';
@@ -25,6 +25,7 @@ import { Outbox } from '@nestjs/outbox';
 import { PreRegister } from './entities/pre-register.entity.js';
 import { PreRegisterDto } from './dto/requests/pre-register.dto.js';
 import ms from 'ms';
+import { RegisterUserDto } from './dto/requests/register-user.dto.js';
 
 @Injectable()
 export class AuthService {
@@ -36,10 +37,6 @@ export class AuthService {
     private readonly credentialsRepository: Repository<Credentials>,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
-    @InjectRepository(Rol)
-    private readonly rolRepository: Repository<Rol>,
-    @InjectRepository(PreRegister)
-    private readonly PreRegisterRepository: Repository<PreRegister>,
     private dataSource: DataSource,
     private readonly jwtGeneratorService: JwtGeneratorService,
     private readonly outbox: Outbox<EntityManager>,
@@ -50,6 +47,7 @@ export class AuthService {
 
     const queryRunner = this.dataSource.createQueryRunner();
     try {
+      await queryRunner.connect();
       await queryRunner.startTransaction();
       const manager = queryRunner.manager;
 
@@ -231,17 +229,95 @@ export class AuthService {
     }
   }
 
-  public regenerateAccessToken(userJwtDto: UserJwtDto) {
+  public async regenerateAccessToken(userJwtDto: UserJwtDto) {
     const { sub } = userJwtDto;
     const payload = {
       sub,
       tokenType: Jwtypes.ACCESS,
     };
 
-    const accessToken = this.jwtGeneratorService.generateToken(payload, '15m');
+    const accessToken = await this.jwtGeneratorService.generateToken(
+      payload,
+      '15m',
+    );
 
     return HandlerSuccessResponse.response('Token regenerated', HttpStatus.OK, {
       accessToken,
     });
+  }
+
+  public async completeRegister(registerUserDto: RegisterUserDto, jti: string) {
+    const { password, phone, ...rest } = registerUserDto;
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    try {
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+      const manager = queryRunner.manager;
+
+      const foundPreRegister = await manager.findOne(PreRegister, {
+        where: { jti },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!foundPreRegister)
+        throw new NotFoundException('Pre-register not found');
+
+      const { email } = foundPreRegister;
+
+      const [existsEmail, existsPhone] = await Promise.all([
+        manager.findOne(User, {
+          where: {
+            email,
+          },
+        }),
+        manager.findOne(User, {
+          where: {
+            phone,
+          },
+        }),
+      ]);
+
+      if (existsEmail) throw new ConflictException('Email already exists');
+      if (existsPhone) throw new ConflictException('Phone already exists');
+
+      const defaultRole = await manager.findOne(Rol, {
+        where: {
+          id: 3,
+        },
+      });
+
+      if (!defaultRole)
+        throw new InternalServerErrorException('Roles not exists');
+
+      const userCreate = manager.create(User, {
+        phone,
+        email,
+        roles: [defaultRole],
+        ...rest,
+      });
+
+      const user = await manager.save(User, userCreate);
+
+      const passwordHash = await this.bcryptConfigService.hash(password);
+      const createCredentials = manager.create(Credentials, {
+        password: passwordHash,
+        user,
+      });
+      await manager.save(Credentials, createCredentials);
+
+      await manager.remove(foundPreRegister);
+
+      await queryRunner.commitTransaction();
+
+      return HandlerSuccessResponse.response('User register');
+    } catch (error) {
+      if (queryRunner.isTransactionActive)
+        await queryRunner.rollbackTransaction();
+      if (error instanceof HttpException) throw error;
+      handleDatabaseErrors(error);
+    } finally {
+      await queryRunner.release();
+    }
   }
 }
