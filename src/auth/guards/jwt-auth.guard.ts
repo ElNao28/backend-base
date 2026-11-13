@@ -10,6 +10,7 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
 import { IS_REFRESH_ROUTE_KEY } from '../decorators/refresh-route.decorator.js';
 import { UserJwtDto } from '../../common/dto/jwt-user.dto.js';
 import { Jwtypes } from '../../common/constants/jwt-types.js';
+import { IS_REGISTER_ROUTE_KEY } from '../decorators/register-route.decorator.js';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -24,7 +25,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       context.getHandler(),
       context.getClass(),
     ]);
-
     if (isPublic) return true;
 
     return super.canActivate(context);
@@ -40,17 +40,39 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (err || !user) {
       throw err || new UnauthorizedException();
     }
-    const isRefreshRoute = this.reflector.getAllAndOverride(
+    if (!user.tokenType) throw new UnauthorizedException('Token invalid');
+
+    const { tokenType } = user as UserJwtDto;
+
+    const isRefreshRoute = this.reflector.getAllAndOverride<boolean>(
       IS_REFRESH_ROUTE_KEY,
       [context.getHandler(), context.getClass()],
     );
-    const { tokenType } = user as UserJwtDto;
 
-    if (!isRefreshRoute && tokenType !== Jwtypes.ACCESS)
+    const isRegisterRoute = this.reflector.getAllAndOverride<boolean>(
+      IS_REGISTER_ROUTE_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (isRefreshRoute) {
+      if (tokenType !== Jwtypes.REFRESH) {
+        throw new UnauthorizedException('Refresh token required');
+      }
+
+      return user;
+    }
+
+    if (isRegisterRoute) {
+      if (tokenType !== Jwtypes.REGISTER) {
+        throw new UnauthorizedException('Register token required');
+      }
+
+      return user;
+    }
+
+    if (tokenType !== Jwtypes.ACCESS) {
       throw new UnauthorizedException('Access token required');
-
-    if (isRefreshRoute && tokenType !== Jwtypes.REFRESH)
-      throw new UnauthorizedException('Refresh token required');
+    }
 
     return user;
   }
