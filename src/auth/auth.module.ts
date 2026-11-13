@@ -11,6 +11,7 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { RolesGuard } from './guards/roles.guard.js';
+import { SendConfirmationMailHandler } from './handlers/send-confirmation-mail.handler.js';
 import { PreRegister } from './entities/pre-register.entity.js';
 
 @Module({
@@ -36,6 +37,7 @@ import { PreRegister } from './entities/pre-register.entity.js';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    SendConfirmationMailHandler,
   ],
   exports: [TypeOrmModule],
 })
