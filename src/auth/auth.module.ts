@@ -13,6 +13,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { RolesGuard } from './guards/roles.guard.js';
 import { SendConfirmationMailHandler } from './handlers/send-confirmation-mail.handler.js';
 import { PreRegister } from './entities/pre-register.entity.js';
+import { AccountCreatedHandler } from './handlers/account-created-mail.handler.js';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { PreRegister } from './entities/pre-register.entity.js';
       useClass: RolesGuard,
     },
     SendConfirmationMailHandler,
+    AccountCreatedHandler,
   ],
   exports: [TypeOrmModule],
 })

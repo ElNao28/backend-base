@@ -308,7 +308,19 @@ export class AuthService {
 
       await manager.remove(foundPreRegister);
 
+      const name =
+        `${user.name} ${user.lastname} ${user.secondLastName ?? ''}`.toUpperCase();
+
+      await this.outbox.add(manager, {
+        topic: 'welcome.mail',
+        payload: {
+          name,
+          email: user.email,
+        },
+      });
+
       await queryRunner.commitTransaction();
+      this.outbox.notify();
 
       return HandlerSuccessResponse.response('User register');
     } catch (error) {
