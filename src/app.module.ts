@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeOrmConfig } from './common/config/typeorm.config.js';
 import { JwtModule } from '@nestjs/jwt';
+import { OutboxModule, OutboxStorage } from '@nestjs/outbox';
 
 // Envitoment configuration
 import generalConfig, {
@@ -14,6 +15,7 @@ import generalConfig, {
 } from './common/config/envs.config.js';
 import { UsersModule } from './users/users.module.js';
 import { MailerModule } from './mail/mail.module.js';
+import { OutBoxStorageProvider } from './common/providers/outbox-storage.provider.js';
 
 @Module({
   imports: [
@@ -38,8 +40,15 @@ import { MailerModule } from './mail/mail.module.js';
     }),
     UsersModule,
     MailerModule,
+    OutboxModule.forRootAsync({
+      imports: [],
+      inject: [],
+      useFactory: () => ({
+        relay: { pollInterval: '1s' },
+      }),
+    }),
   ],
   controllers: [AppController],
-  providers: [],
+  providers: [OutBoxStorageProvider],
 })
 export class AppModule {}

@@ -1,5 +1,7 @@
+import { Jwtypes } from '../constants/jwt-types.js';
+
 export class UserJwtDto {
   sub: string;
-  tokenType: 'refresh' | 'access';
+  tokenType: Jwtypes;
   jti?: string;
 }

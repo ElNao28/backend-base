@@ -1,19 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class JwtGeneratorService {
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
-  ) {}
+  constructor(private readonly jwtService: JwtService) {}
 
   public generateToken(
     payload: { [key: string]: any },
     expiresIn: string,
-  ): string {
-    return this.jwtService.sign(payload, {
+  ): Promise<string> {
+    return this.jwtService.signAsync(payload, {
       expiresIn: expiresIn as any,
     });
   }

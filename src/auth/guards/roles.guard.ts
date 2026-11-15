@@ -12,6 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity.js';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
+import { IS_REGISTER_ROUTE_KEY } from '../decorators/register-route.decorator.js';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -26,6 +27,13 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
     if (isPublic) return true;
+
+    const isRegisterRoute = this.reflector.getAllAndOverride(
+      IS_REGISTER_ROUTE_KEY,
+      [context.getHandler(), context.getClass],
+    );
+
+    if (isRegisterRoute) return true;
 
     const roles = this.reflector.getAllAndOverride(ROLES_KEY, [
       context.getHandler(),

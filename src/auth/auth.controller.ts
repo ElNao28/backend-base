@@ -12,6 +12,9 @@ import { RegenerateRefreshTokenResponseDto } from './dto/responses/regenerate-ac
 import { RefreshRoute } from './decorators/refresh-route.decorator.js';
 import { ResponseDataApi } from '../common/decorators/response-api.decorator.js';
 import { ResponseEmptyApi } from '../common/decorators/response-success-api.decorators.js';
+import { PreRegisterDto } from './dto/requests/pre-register.dto.js';
+import { RegisterRoute } from './decorators/register-route.decorator.js';
+import { RegisterTokenGuard } from './guards/register-token.guard.js';
 
 @Controller('auth')
 export class AuthController {
@@ -19,9 +22,9 @@ export class AuthController {
 
   @ResponseEmptyApi(HttpStatus.CREATED)
   @Public()
-  @Post('register')
-  public registerUser(@Body() registerUserDto: RegisterUserDto) {
-    return this.authService.registerUser(registerUserDto);
+  @Post('pre-register')
+  public preRegister(@Body() preRegisterDto: PreRegisterDto) {
+    return this.authService.preRegister(preRegisterDto);
   }
 
   @ResponseDataApi(SignInDataResponseDto)
@@ -38,5 +41,16 @@ export class AuthController {
   @Post('access-token')
   public regenerateAccessToken(@UserJwt() userJwtDto: UserJwtDto) {
     return this.authService.regenerateAccessToken(userJwtDto);
+  }
+
+  @ResponseEmptyApi()
+  @RegisterRoute()
+  @UseGuards(RegisterTokenGuard)
+  @Post('complete-register')
+  public completeRegister(
+    @Body() registerUserDto: RegisterUserDto,
+    @UserJwt() { jti }: { jti: string },
+  ) {
+    return this.authService.completeRegister(registerUserDto, jti);
   }
 }
