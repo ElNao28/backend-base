@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeOrmConfig } from './common/config/typeorm.config.js';
 import { JwtModule } from '@nestjs/jwt';
 import { OutboxModule, OutboxStorage } from '@nestjs/outbox';
+import { ScheduleModule } from '@nestjs/schedule';
 
 // Envitoment configuration
 import generalConfig, {
@@ -16,6 +17,7 @@ import generalConfig, {
 import { UsersModule } from './users/users.module.js';
 import { MailerModule } from './mail/mail.module.js';
 import { OutBoxStorageProvider } from './common/providers/outbox-storage.provider.js';
+import { SchedulerModule } from './scheduler/scheduler.module.js';
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { OutBoxStorageProvider } from './common/providers/outbox-storage.provide
         relay: { pollInterval: '1s' },
       }),
     }),
+    ScheduleModule.forRoot(),
+    SchedulerModule,
   ],
   controllers: [AppController],
   providers: [OutBoxStorageProvider],
