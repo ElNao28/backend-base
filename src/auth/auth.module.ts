@@ -7,13 +7,40 @@ import { Rol } from './entities/rol.entity.js';
 import { Credentials } from './entities/credentials.entity.js';
 import { RefreshToken } from './entities/refresh-token.entity.js';
 import { CommonModule } from '../common/common.module.js';
+import { JwtStrategy } from './strategies/jwt.strategy.js';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { RolesGuard } from './guards/roles.guard.js';
+import { SendConfirmationMailHandler } from './handlers/send-confirmation-mail.handler.js';
+import { PreRegister } from './entities/pre-register.entity.js';
+import { AccountCreatedHandler } from './handlers/account-created-mail.handler.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Rol, Credentials, RefreshToken]),
+    TypeOrmModule.forFeature([
+      User,
+      Rol,
+      Credentials,
+      RefreshToken,
+      PreRegister,
+    ]),
     CommonModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+    SendConfirmationMailHandler,
+    AccountCreatedHandler,
+  ],
+  exports: [TypeOrmModule],
 })
 export class AuthModule {}

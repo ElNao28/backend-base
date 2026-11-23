@@ -1,16 +1,23 @@
+import 'dotenv/config.js';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller.js';
-import { AppService } from './app.service.js';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { AuthModule } from './auth/auth.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeOrmConfig } from './common/config/typeorm.config.js';
-// Envitoment configuration
+import { JwtModule } from '@nestjs/jwt';
+import { OutboxModule, OutboxStorage } from '@nestjs/outbox';
+import { ScheduleModule } from '@nestjs/schedule';
 
+// Envitoment configuration
 import generalConfig, {
   EnviromentsValidationSchema,
 } from './common/config/envs.config.js';
+import { UsersModule } from './users/users.module.js';
+import { MailerModule } from './mail/mail.module.js';
+import { OutBoxStorageProvider } from './common/providers/outbox-storage.provider.js';
+import { SchedulerModule } from './scheduler/scheduler.module.js';
 
 @Module({
   imports: [
@@ -20,14 +27,32 @@ import generalConfig, {
       validationSchema: EnviromentsValidationSchema,
     }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) =>
         TypeOrmConfig(configService),
     }),
     AuthModule,
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      global: true,
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get('envs.JWT_KEY'),
+        global: true,
+      }),
+    }),
+    UsersModule,
+    MailerModule,
+    OutboxModule.forRootAsync({
+      imports: [],
+      inject: [],
+      useFactory: () => ({
+        relay: { pollInterval: '1s' },
+      }),
+    }),
+    ScheduleModule.forRoot(),
+    SchedulerModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [OutBoxStorageProvider],
 })
 export class AppModule {}
